@@ -69,10 +69,10 @@ function createDropdownBox({
   labelText,
   id,
   dropdownList,
-  required
+  required = false
 }) {
   const dropdownBox = createElement("div", {
-    className: ["form-item", `${"form-item--required"}`]
+    className: ["form-item", required && "form-item--required"]
   });
   const dropdownLabel = createElement("label", {
     htmlFor: id,
@@ -101,7 +101,8 @@ function createInputBox({
   type,
   id,
   required = false,
-  textCaption = ""
+  textCaption = "",
+  placeholder = ""
 }) {
   const inputBox = createElement("div", {
     className: ["form-item", `${required && "form-item--required"}`]
@@ -115,7 +116,8 @@ function createInputBox({
     type,
     name: id,
     id,
-    required
+    required,
+    placeholder
   });
   const fragment = createElementsFragment([inputLabel, input]);
   if (textCaption) {
@@ -134,7 +136,8 @@ function createTextAreaBox({
   required = false,
   textCaption = "",
   cols = 30,
-  rows = 5
+  rows = 5,
+  placeholder = ""
 }) {
   const textAreaBox = createElement("div", {
     className: ["form-item", `${required && "form-item--required"}`]
@@ -148,7 +151,8 @@ function createTextAreaBox({
     name: id,
     id,
     cols,
-    rows
+    rows,
+    placeholder
   });
   const fragment = createElementsFragment([textAreaLabel, textArea]);
   if (textCaption) {
@@ -301,7 +305,8 @@ function createRestaurantForm() {
       labelText: "이름",
       required: true,
       type: "text",
-      id: "name"
+      id: "name",
+      placeholder: "음식점 이름(12자 이하)"
     }),
     createDropdownBox({
       labelText: "거리(도보 이동 시간)",
@@ -312,13 +317,15 @@ function createRestaurantForm() {
     createTextAreaBox({
       labelText: "설명",
       id: "description",
-      textCaption: "메뉴 등 추가 정보를 입력해 주세요."
+      textCaption: "메뉴 등 추가 정보를 입력해 주세요.",
+      placeholder: "설명은 300자 이하여야 합니다. 맛있는 설명을 곁들여 주세요!"
     }),
     createInputBox({
       labelText: "참고 링크",
       type: "text",
       id: "link",
-      textCaption: "메장 정보를 확인할 수 있는 링크를 입력해 주세요."
+      textCaption: "메장 정보를 확인할 수 있는 링크를 입력해 주세요.",
+      placeholder: "https://example.com 링크는 300자 이하여야 합니다."
     })
   );
   const buttonContainer = createElement("div", {

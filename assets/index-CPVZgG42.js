@@ -290,6 +290,37 @@ function createRestaurantItem({
   `;
   return restaurantItem;
 }
+const Toast = {
+  showToast(message, type = "error", duration = 5e3) {
+    if (type === "info") duration = 2e3;
+    let toastContainer = document.querySelector(".toast-container");
+    if (!toastContainer) {
+      toastContainer = document.createElement("div");
+      toastContainer.className = "toast-container";
+      document.body.appendChild(toastContainer);
+    }
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    if (type == "error") message = message.replace("[ERROR]", "");
+    toast.innerHTML = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 100);
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+    toast.addEventListener("click", () => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    });
+  },
+  resetToast() {
+    let toastContainer = document.querySelector(".toast-container");
+    if (toastContainer) toastContainer.remove();
+  }
+};
 function createRestaurantForm() {
   const restaurantAddForm = createElement("form", {
     className: "restaurant-add-form"
@@ -358,34 +389,27 @@ function createRestaurantForm() {
       const restaurantList = document.querySelector(".restaurant-list");
       restaurantList.appendChild(createRestaurantItem(formData));
       restaurantAddForm.reset();
+      Toast.showToast(`${formData.name} 음식점을 추가했습니다.`, "success");
       const modal = document.querySelector(".modal");
       modal.close();
     } catch (error) {
-      alert(error.message);
+      Toast.showToast(`${error.message}`, "error");
     }
   }
   restaurantAddForm.addEventListener("submit", handleAddRestaurantFormSubmit);
   return restaurantAddForm;
 }
 document.querySelector("#app");
-function bottomSheetController() {
-  let isFirstRender = false;
-  function handleBottomSheetToggle2(event) {
-    const modal = document.querySelector(".modal");
-    if (event.target.closest(".restaurant-add-button")) {
-      modal.showModal();
-      if (!isFirstRender) {
-        const modalContainer = document.querySelector(".modal-container");
-        const restaurantFrom = createRestaurantForm();
-        modalContainer.appendChild(restaurantFrom);
-        isFirstRender = true;
-      }
-    }
-    if (event.target.closest(".modal-backdrop")) {
-      modal.close();
-    }
+const modalContainer = document.querySelector(".modal-container");
+const restaurantFrom = createRestaurantForm();
+modalContainer.appendChild(restaurantFrom);
+function handleBottomSheetToggle(event) {
+  const modal = document.querySelector(".modal");
+  if (event.target.closest(".restaurant-add-button")) {
+    modal.show();
   }
-  return { handleBottomSheetToggle: handleBottomSheetToggle2 };
+  if (event.target.closest(".modal-backdrop")) {
+    modal.close();
+  }
 }
-const { handleBottomSheetToggle } = bottomSheetController();
 document.body.addEventListener("click", handleBottomSheetToggle);

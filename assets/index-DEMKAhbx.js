@@ -37,13 +37,17 @@
 })();
 function createElement(tag, props = {}) {
   const element = document.createElement(tag);
-  for (const [key, value] of Object.entries(props)) {
+  Object.entries(props).forEach(([key, value]) => {
     if (key === "className") {
-      Array.isArray(value) ? element.classList.add(...value) : element.classList.add(value);
-      continue;
+      if (Array.isArray(value)) {
+        element.classList.add(...value);
+      } else if (typeof value === "string") {
+        element.classList.add(value);
+      }
+      return;
     }
-    element[key] = value;
-  }
+    if (key in element) element[key] = value;
+  });
   return element;
 }
 function createElementsFragment(elements) {
@@ -193,7 +197,7 @@ const ERROR_MESSAGE = {
   INVALID_RESTAURANT_LINK_LENGTH: `움식점 링크는 ${RESTAURANT_FIELD_LENGTH.link.max}이하만 가능합니다.`
 };
 function extractByKey(list, key) {
-  return list.map((item) => item[key]);
+  return list.map((item) => item[key]).filter((value) => typeof value === "string");
 }
 function extractFormData(form) {
   const formData = new FormData(form);
@@ -202,8 +206,9 @@ function extractFormData(form) {
 function isInRange(value, min, max) {
   return value >= min && value <= max;
 }
+const categoryList = extractByKey(FOOD_CATEGORY, "value");
+const distanceList = extractByKey(RESTAURANT_DISTANCE, "value");
 function _validateRestaurantCategory(category) {
-  const categoryList = extractByKey(FOOD_CATEGORY, "value");
   if (!categoryList.includes(category)) {
     throw new Error(ERROR_MESSAGE.INVALID_CATEGORY);
   }
@@ -218,7 +223,6 @@ function _validateRestaurantName(restaurantName) {
   }
 }
 function _validateRestaurantDistance(distance) {
-  const distanceList = extractByKey(RESTAURANT_DISTANCE, "value");
   if (!distanceList.includes(distance)) {
     throw new Error(ERROR_MESSAGE.INVALID_RESTAURANT_DISTANCE);
   }
@@ -241,18 +245,12 @@ function _validateRestaurantLink(link) {
     throw new Error(ERROR_MESSAGE.INVALID_RESTAURANT_LINK_LENGTH);
   }
 }
-function restaurantFormValidation({
-  category,
-  name,
-  distance,
-  description,
-  link
-}) {
-  _validateRestaurantCategory(category);
-  _validateRestaurantName(name);
-  _validateRestaurantDistance(distance);
-  _validateRestaurantDescription(description);
-  _validateRestaurantLink(link);
+function restaurantFormValidation(restaurant) {
+  _validateRestaurantCategory(restaurant.category);
+  _validateRestaurantName(restaurant.name);
+  _validateRestaurantDistance(restaurant.distance);
+  _validateRestaurantDescription(restaurant.description);
+  _validateRestaurantLink(restaurant.link);
 }
 const categoryIcon = {
   한식: "./category-korean.png",

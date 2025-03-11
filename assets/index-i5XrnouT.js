@@ -232,6 +232,54 @@ const INITIAL_RESTAURANT = [
     isFavorite: false,
     category: "양식",
     link: "https://italykitchen.co.kr"
+  },
+  {
+    name: "수라간",
+    distance: 5,
+    description: "궁중 요리를 현대적으로 재해석한 한정식 전문점. 엄선된 재료와 정갈한 조리법으로 한식의 품격을 느낄 수 있습니다.",
+    isFavorite: false,
+    category: "한식",
+    link: "https://souragan.kr"
+  },
+  {
+    name: "홍콩반점0410",
+    distance: 15,
+    description: "가성비 뛰어난 짬뽕과 탕수육을 맛볼 수 있는 프랜차이즈 중식당. 매운맛 조절이 가능하며, 해물 육수로 깊은 맛을 냅니다.",
+    isFavorite: false,
+    category: "중식",
+    link: "https://hongkongbanjum.com"
+  },
+  {
+    name: "스시히로바",
+    distance: 10,
+    description: "고급 오마카세 스타일의 스시 전문점. 신선한 해산물과 장인의 기술이 어우러져 정통 일본 초밥의 깊은 풍미를 제공합니다.",
+    isFavorite: false,
+    category: "일식",
+    link: "https://sushihiroba.com"
+  },
+  {
+    name: "타이팟",
+    distance: 20,
+    description: "현지에서 직접 공수한 향신료를 활용해 태국 전통 요리를 선보이는 레스토랑. 팟타이와 똠양꿍이 대표 메뉴입니다.",
+    isFavorite: false,
+    category: "아시안",
+    link: "https://thaipat.com"
+  },
+  {
+    name: "비스트로루카",
+    distance: 10,
+    description: "이탈리아 가정식을 모티브로 한 소박하지만 정성 가득한 요리를 선보이는 레스토랑. 따뜻한 분위기 속에서 즐기는 파스타와 리조또가 인기입니다.",
+    isFavorite: false,
+    category: "양식",
+    link: "https://bistroluca.com"
+  },
+  {
+    name: "BBQ치킨",
+    distance: 5,
+    description: "바삭하고 촉촉한 프리미엄 치킨을 즐길 수 있는 브랜드. 다양한 소스와 사이드 메뉴가 준비되어 있습니다.",
+    isFavorite: false,
+    category: "기타",
+    link: "https://bbqchicken.com"
   }
 ];
 function extractByKey(list, key) {
@@ -307,6 +355,11 @@ const categoryIcon = {
   아시안: "./category-asian.png",
   기타: "./category-etc.png"
 };
+function setDataset(element, data) {
+  Object.keys(data).forEach((key) => {
+    element.dataset[key] = data[key];
+  });
+}
 function createRestaurantItem({
   category,
   name,
@@ -316,6 +369,11 @@ function createRestaurantItem({
   isFavorite
 }) {
   const restaurantItem = createElement("li", { className: "restaurant" });
+  setDataset(restaurantItem, {
+    name,
+    distance,
+    category
+  });
   restaurantItem.innerHTML = `
   <div class="restaurant__category">
     <img
@@ -475,6 +533,10 @@ localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
 restaurantList.List.forEach(
   (restaurantItem) => restaurantListElement.appendChild(createRestaurantItem(restaurantItem))
 );
+if (localStorage.getItem("sort")) {
+  handleSort(localStorage.getItem("sort"));
+  document.getElementById("sorting-filter").value = localStorage.getItem("sort");
+}
 function handleBottomSheetToggle(event) {
   const modal = document.querySelector(".modal");
   if (event.target.closest(".restaurant-add-button")) {
@@ -512,9 +574,46 @@ function handleAddRestaurantFormSubmit(event) {
     Toast.showToast(`${error.message}`, "error");
   }
 }
+function sortList(list, sortOption) {
+  return list.sort((a, b) => {
+    const nameA = a.name || a.dataset.name;
+    const nameB = b.name || b.dataset.name;
+    const distanceA = Number(a.distance || a.dataset.distance);
+    const distanceB = Number(b.distance || b.dataset.distance);
+    if (sortOption === "distance") {
+      return distanceA - distanceB || nameA.localeCompare(nameB);
+    }
+    return nameA.localeCompare(nameB) || distanceA - distanceB;
+  });
+}
+function handleSort(sortFor) {
+  const restaurantItems = Array.from(restaurantListElement.children);
+  localStorage.setItem("sort", sortFor);
+  const sortedItems = sortList(restaurantItems, sortFor);
+  sortedItems.forEach((item) => restaurantListElement.appendChild(item));
+}
+function handleFilter(event) {
+  while (restaurantListElement.firstChild) {
+    restaurantListElement.removeChild(restaurantListElement.firstChild);
+  }
+  const filteredList = event.target.value === "전체" ? restaurantList.List : restaurantList.List.filter(
+    ({ category }) => category === event.target.value
+  );
+  const sortOption = localStorage.getItem("sort") || "name";
+  const sortedList = sortList(filteredList, sortOption);
+  sortedList.forEach(
+    (restaurantItem) => restaurantListElement.appendChild(createRestaurantItem(restaurantItem))
+  );
+}
 document.body.addEventListener("click", (event) => {
   [handleBottomSheetToggle, handleFavoriteToggle].forEach(
     (handler) => handler(event)
   );
+});
+document.getElementById("category-filter").addEventListener("change", (event) => {
+  handleFilter(event);
+});
+document.getElementById("sorting-filter").addEventListener("change", (event) => {
+  handleSort(event.target.value);
 });
 restaurantAddForm.addEventListener("submit", handleAddRestaurantFormSubmit);

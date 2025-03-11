@@ -554,7 +554,9 @@ function handleFavoriteToggle(event) {
   if (!restaurant) return;
   restaurantList.toggleFavoriteRestaurant(restaurant);
   localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
-  console.log(JSON.parse(localStorage.getItem("restaurantList")));
+  if (!restaurant.isFavorite && document.querySelector('input[name="favoriteFilter"]:checked').value === "favorite") {
+    restaurantListElement.removeChild(parent.parentElement.parentElement);
+  }
   event.target.src = restaurant.isFavorite ? "./Star.png" : "./Un-star.png";
 }
 function handleAddRestaurantFormSubmit(event) {
@@ -592,13 +594,23 @@ function handleSort(sortFor) {
   const sortedItems = sortList(restaurantItems, sortFor);
   sortedItems.forEach((item) => restaurantListElement.appendChild(item));
 }
-function handleFilter(event) {
+function handleCombinedFilter() {
   while (restaurantListElement.firstChild) {
     restaurantListElement.removeChild(restaurantListElement.firstChild);
   }
-  const filteredList = event.target.value === "전체" ? restaurantList.List : restaurantList.List.filter(
-    ({ category }) => category === event.target.value
-  );
+  const categoryFilter = document.getElementById("category-filter").value;
+  const favoriteFilter = document.querySelector(
+    'input[name="favoriteFilter"]:checked'
+  ).value;
+  let filteredList = restaurantList.List;
+  if (favoriteFilter !== "all") {
+    filteredList = filteredList.filter(({ isFavorite }) => isFavorite);
+  }
+  if (categoryFilter !== "전체") {
+    filteredList = filteredList.filter(
+      ({ category }) => category === categoryFilter
+    );
+  }
   const sortOption = localStorage.getItem("sort") || "name";
   const sortedList = sortList(filteredList, sortOption);
   sortedList.forEach(
@@ -610,9 +622,8 @@ document.body.addEventListener("click", (event) => {
     (handler) => handler(event)
   );
 });
-document.getElementById("category-filter").addEventListener("change", (event) => {
-  handleFilter(event);
-});
+document.getElementById("category-filter").addEventListener("change", handleCombinedFilter);
+document.getElementById("favorite-filter").addEventListener("change", handleCombinedFilter);
 document.getElementById("sorting-filter").addEventListener("change", (event) => {
   handleSort(event.target.value);
 });

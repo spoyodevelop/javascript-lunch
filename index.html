@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <title>점심 뭐 먹지</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="module" crossorigin src="/javascript-lunch/assets/index-i5XrnouT.js"></script>
-    <link rel="stylesheet" crossorigin href="/javascript-lunch/assets/index-LBJ2qboc.css">
+    <script type="module" crossorigin src="/javascript-lunch/assets/index-DLtwQsPm.js"></script>
+    <link rel="stylesheet" crossorigin href="/javascript-lunch/assets/index-E63jXev1.css">
   </head>
 
   <body>
@@ -22,7 +22,25 @@
         </button>
       </header>
       <main>
-        <!-- 카테고리/정렬 필터 -->
+        <div id="favorite-filter">
+          <input
+            type="radio"
+            id="filter-all"
+            name="favoriteFilter"
+            value="all"
+            checked
+          />
+          <label for="filter-all">모든 음식점</label>
+
+          <input
+            type="radio"
+            id="filter-favorite"
+            name="favoriteFilter"
+            value="favorite"
+          />
+          <label for="filter-favorite">자주 가는 음식점</label>
+        </div>
+
         <section class="restaurant-filter-container">
           <select
             name="category"

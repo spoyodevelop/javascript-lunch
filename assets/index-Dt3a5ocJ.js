@@ -1,3 +1,6 @@
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -197,6 +200,40 @@ const ERROR_MESSAGE = {
   INVALID_RESTAURANT_LINK_LENGTH: `움식점 링크는 ${RESTAURANT_FIELD_LENGTH.link.max}이하만 가능합니다.`,
   DUPLICATE_RESTAURANT: `이미 동일한 이름의 음식점이 있습니다. 다른 음식점을 입력해주세요.`
 };
+const INITIAL_RESTAURANT = [
+  {
+    name: "피양콩할마니",
+    distance: 10,
+    description: "2005년, 장모님께 전수받은 전통 설렁탕 조리법을 현대적인 감각으로 재해석한 곳. 깊고 진한 국물 맛이 일품입니다.",
+    isFavorite: false,
+    category: "한식",
+    link: "https://pi-yangkonghalmani.com"
+  },
+  {
+    name: "친친",
+    distance: 10,
+    description: "2004년부터 이어온 깊은 내공의 중식당. 편리한 교통과 넓은 주차 공간, 그리고 정통 중화요리를 경험할 수 있는 곳.",
+    isFavorite: false,
+    category: "중식",
+    link: "https://chinchin-chinese.com"
+  },
+  {
+    name: "잇쇼우",
+    distance: 5,
+    description: "정통 사누끼 우동을 직접 제면하여 선보이는 전문점. 장인의 정성이 담긴 깊은 감칠맛을 경험해 보세요.",
+    isFavorite: false,
+    category: "일식",
+    link: "https://isshou-udon.jp"
+  },
+  {
+    name: "이태리키친",
+    distance: 20,
+    description: "정통 이탈리안 요리에 창의적인 변화를 더한 모던 다이닝 레스토랑.",
+    isFavorite: false,
+    category: "양식",
+    link: "https://italykitchen.co.kr"
+  }
+];
 function extractByKey(list, key) {
   return list.map((item) => item[key]).filter((value) => typeof value === "string");
 }
@@ -224,7 +261,7 @@ function _validateRestaurantName(restaurantName) {
   }
 }
 function _validateRestaurantDistance(distance) {
-  if (!distanceList.includes(distance)) {
+  if (!distanceList.includes(distance.toString())) {
     throw new Error(ERROR_MESSAGE.INVALID_RESTAURANT_DISTANCE);
   }
 }
@@ -246,13 +283,21 @@ function _validateRestaurantLink(link) {
     throw new Error(ERROR_MESSAGE.INVALID_RESTAURANT_LINK_LENGTH);
   }
 }
-function restaurantFormValidation(restaurant) {
-  _validateRestaurantCategory(restaurant.category);
-  _validateRestaurantName(restaurant.name);
-  _validateRestaurantDistance(restaurant.distance);
-  _validateRestaurantDescription(restaurant.description);
-  _validateRestaurantLink(restaurant.link);
-  return { ...restaurant, isFavorite: false };
+function restaurantFormValidation(restaurantForm) {
+  _validateRestaurantCategory(restaurantForm.category);
+  _validateRestaurantName(restaurantForm.name);
+  _validateRestaurantDistance(restaurantForm.distance);
+  _validateRestaurantDescription(restaurantForm.description);
+  _validateRestaurantLink(restaurantForm.link);
+  const { name, distance, description, category, link } = restaurantForm;
+  return {
+    name,
+    distance: +distance,
+    description,
+    category,
+    link,
+    isFavorite: false
+  };
 }
 const categoryIcon = {
   한식: "./category-korean.png",
@@ -331,53 +376,12 @@ const Toast = {
     if (toastContainer) toastContainer.remove();
   }
 };
-const restaurantList = [
-  {
-    name: "피양콩할마니",
-    distance: "10",
-    description: "2005년, 장모님께 전수받은 전통 설렁탕 조리법을 현대적인 감각으로 재해석한 곳. 깊고 진한 국물 맛이 일품입니다.",
-    isFavorite: false,
-    category: "한식",
-    link: "https://pi-yangkonghalmani.com"
-  },
-  {
-    name: "친친",
-    distance: "10",
-    description: "2004년부터 이어온 깊은 내공의 중식당. 편리한 교통과 넓은 주차 공간, 그리고 정통 중화요리를 경험할 수 있는 곳.",
-    isFavorite: false,
-    category: "중식",
-    link: "https://chinchin-chinese.com"
-  },
-  {
-    name: "잇쇼우",
-    distance: "5",
-    description: "정통 사누끼 우동을 직접 제면하여 선보이는 전문점. 장인의 정성이 담긴 깊은 감칠맛을 경험해 보세요.",
-    isFavorite: false,
-    category: "일식",
-    link: "https://isshou-udon.jp"
-  },
-  {
-    name: "이태리키친",
-    distance: "20",
-    description: "정통 이탈리안 요리에 창의적인 변화를 더한 모던 다이닝 레스토랑.",
-    isFavorite: false,
-    category: "양식",
-    link: "https://italykitchen.co.kr"
-  }
-];
-function addRestaurant(restaurant) {
-  if (searchRestaurant(restaurant.name))
-    throw new Error(ERROR_MESSAGE.DUPLICATE_RESTAURANT);
-  restaurantList.push(restaurant);
-}
-function searchRestaurant(name) {
-  return restaurantList.find((item) => item.name === name);
-}
-function createRestaurantForm() {
-  const restaurantAddForm = createElement("form", {
-    className: "restaurant-add-form"
+function createRestaurantForm(restaurantList2) {
+  const restaurantAddForm2 = createElement("form", {
+    className: "restaurant-add-form",
+    id: "restaurant-add-form"
   });
-  restaurantAddForm.append(
+  restaurantAddForm2.append(
     createDropdownBox({
       labelText: "카테고리",
       id: "category",
@@ -432,32 +436,43 @@ function createRestaurantForm() {
       textContent: "추가하기"
     })
   );
-  restaurantAddForm.appendChild(buttonContainer);
-  function handleAddRestaurantFormSubmit(event) {
-    event.preventDefault();
-    try {
-      const restaurantForm = extractFormData(restaurantAddForm);
-      const restaurant = restaurantFormValidation(restaurantForm);
-      const restaurantListElement2 = document.querySelector(".restaurant-list");
-      addRestaurant(restaurantForm, restaurantList);
-      restaurantListElement2.appendChild(createRestaurantItem(restaurantForm));
-      Toast.showToast(`${restaurant.name} 음식점을 추가했습니다.`, "success");
-      const modal = document.querySelector(".modal");
-      restaurantAddForm.reset();
-      modal.close();
-    } catch (error) {
-      Toast.showToast(`${error.message}`, "error");
-    }
+  restaurantAddForm2.appendChild(buttonContainer);
+  return restaurantAddForm2;
+}
+class RestaurantList {
+  constructor(restaurantList2) {
+    __publicField(this, "restaurantList", []);
+    this.restaurantList = restaurantList2;
   }
-  restaurantAddForm.addEventListener("submit", handleAddRestaurantFormSubmit);
-  return restaurantAddForm;
+  get List() {
+    return this.restaurantList;
+  }
+  parseRestaurantForm(restaurantForm) {
+    return restaurantFormValidation(restaurantForm);
+  }
+  addRestaurant(restaurant) {
+    if (this.searchRestaurant(restaurant.name))
+      throw new Error(ERROR_MESSAGE.DUPLICATE_RESTAURANT);
+    this.restaurantList.push(restaurant);
+  }
+  searchRestaurant(name) {
+    return this.restaurantList.find((item) => item.name === name);
+  }
+  toggleFavoriteRestaurant(restaurant) {
+    restaurant.isFavorite = !restaurant.isFavorite;
+  }
 }
 document.querySelector("#app");
 const modalContainer = document.querySelector(".modal-container");
-const restaurantFrom = createRestaurantForm();
 const restaurantListElement = document.querySelector(".restaurant-list");
+const restaurantFrom = createRestaurantForm();
 modalContainer.appendChild(restaurantFrom);
-restaurantList.forEach(
+const restaurantAddForm = document.querySelector(".restaurant-add-form");
+let restaurantList = new RestaurantList(
+  JSON.parse(localStorage.getItem("restaurantList")) || [...INITIAL_RESTAURANT]
+);
+localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
+restaurantList.List.forEach(
   (restaurantItem) => restaurantListElement.appendChild(createRestaurantItem(restaurantItem))
 );
 function handleBottomSheetToggle(event) {
@@ -469,4 +484,37 @@ function handleBottomSheetToggle(event) {
     modal.close();
   }
 }
-document.body.addEventListener("click", handleBottomSheetToggle);
+function handleFavoriteToggle(event) {
+  if (!event.target.classList.contains("favorite-icon")) return;
+  const parent = event.target.parentElement;
+  const name = parent.querySelector(".restaurant__name").textContent;
+  const restaurant = restaurantList.searchRestaurant(name);
+  if (!restaurant) return;
+  restaurantList.toggleFavoriteRestaurant(restaurant);
+  localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
+  console.log(JSON.parse(localStorage.getItem("restaurantList")));
+  event.target.src = restaurant.isFavorite ? "./Star.png" : "./Un-star.png";
+}
+function handleAddRestaurantFormSubmit(event) {
+  event.preventDefault();
+  try {
+    const restaurantForm = extractFormData(restaurantAddForm);
+    const restaurant = restaurantFormValidation(restaurantForm);
+    const restaurantListElement2 = document.querySelector(".restaurant-list");
+    restaurantList.addRestaurant(restaurant);
+    localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
+    restaurantListElement2.appendChild(createRestaurantItem(restaurantForm));
+    Toast.showToast(`${restaurant.name} 음식점을 추가했습니다.`, "success");
+    const modal = document.querySelector(".modal");
+    restaurantAddForm.reset();
+    modal.close();
+  } catch (error) {
+    Toast.showToast(`${error.message}`, "error");
+  }
+}
+document.body.addEventListener("click", (event) => {
+  [handleBottomSheetToggle, handleFavoriteToggle].forEach(
+    (handler) => handler(event)
+  );
+});
+restaurantAddForm.addEventListener("submit", handleAddRestaurantFormSubmit);

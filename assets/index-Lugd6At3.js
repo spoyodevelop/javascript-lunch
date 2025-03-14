@@ -43,6 +43,14 @@ var _restaurantList;
     fetch(link.href, fetchOpts);
   }
 })();
+const CATEGORY_ICON = {
+  한식: "./category-korean.png",
+  중식: "./category-chinese.png",
+  일식: "./category-japanese.png",
+  양식: "./category-western.png",
+  아시안: "./category-asian.png",
+  기타: "./category-etc.png"
+};
 const FOOD_CATEGORY = [
   { value: "한식", text: "한식" },
   { value: "중식", text: "중식" },
@@ -398,14 +406,6 @@ function createTextAreaBox({
   textAreaBox.appendChild(fragment);
   return textAreaBox;
 }
-const categoryIcon$1 = {
-  한식: "./category-korean.png",
-  중식: "./category-chinese.png",
-  일식: "./category-japanese.png",
-  양식: "./category-western.png",
-  아시안: "./category-asian.png",
-  기타: "./category-etc.png"
-};
 function setDataset(element, data) {
   Object.keys(data).forEach((key) => {
     element.dataset[key] = data[key];
@@ -431,7 +431,7 @@ function createRestaurantItem({
   restaurantItem.innerHTML = `
   <div class="restaurant__category">
     <img
-      src="${categoryIcon$1[category]}"
+      src="${CATEGORY_ICON[category]}"
       alt="${category}"
       class="category-icon"
     />
@@ -517,14 +517,14 @@ function createRestaurantForm(restaurantList) {
       labelText: "설명",
       id: "description",
       textCaption: "메뉴 등 추가 정보를 입력해 주세요.",
-      placeholder: "설명은 300자 이하여야 합니다. 맛있는 설명을 곁들여 주세요!"
+      placeholder: `설명은 ${RESTAURANT_FIELD_LENGTH.name.max}자 이하여야 합니다. 맛있는 설명을 곁들여 주세요!`
     }),
     createInputBox({
       labelText: "참고 링크",
       type: "text",
       id: "link",
       textCaption: "메장 정보를 확인할 수 있는 링크를 입력해 주세요.",
-      placeholder: "https://example.com 링크는 300자 이하여야 합니다."
+      placeholder: `https://example.com 링크는 ${RESTAURANT_FIELD_LENGTH.link.max}자 이하여야 합니다.`
     })
   );
   const buttonContainer = createElement("div", {
@@ -601,14 +601,6 @@ function handleCombinedFilter(event, restaurantListElement, restaurantList) {
     );
   }
 }
-const categoryIcon = {
-  한식: "./category-korean.png",
-  중식: "./category-chinese.png",
-  일식: "./category-japanese.png",
-  양식: "./category-western.png",
-  아시안: "./category-asian.png",
-  기타: "./category-etc.png"
-};
 function createRestaurantDescription({
   category,
   name,
@@ -621,33 +613,35 @@ function createRestaurantDescription({
     className: "restaurant-description"
   });
   restaurantItem.innerHTML = `
-    <div class="restaurant__category">
+    <div class="restaurant__category description__icon">
       <img
-        src="${categoryIcon[category]}"
+        src="${CATEGORY_ICON[category]}"
         alt="${category}"
         class="category-icon"
       />
     </div>
     <div class="restaurant__info">
-  
-      <div class="restaurant__header"> 
+        
+      <div class="restaurant__header description__header"> 
         <div> 
         <h3 class="restaurant__name text-subtitle">${name}</h3>
         <span class="restaurant__distance text-body"
           >캠퍼스부터 ${distance}분 내</span
         >
         </div>
-         <img src="${isFavorite ? "./Star.png" : "./Un-star.png"}" class="favorite-icon" id="description-favorite"/>
+         <img src="${isFavorite ? "./Star.png" : "./Un-star.png"}" class="favorite-icon" id="description-favorite" />
       </div>
      
-    
+     <div class="description__contents">
       <p class="restaurant__description text-body">
         ${description}
       </p>
-       <p class="restaurant__description text-body">
-         ${link}
-      </p>
-     
+        <p class="restaurant__description text-body">
+          <a href="${link}" target="_blank" class="link">
+              ${link}
+          </a>
+        </p>
+     </div>
       <div class="button-container">
         <button type="button" class="button button--secondary text-caption" id="delete-button">삭제하기</button>
         <button type="button" class="button button--primary text-caption" id="close-button">닫기</button>
@@ -657,41 +651,45 @@ function createRestaurantDescription({
     `;
   return restaurantItem;
 }
-function handleFormModalToggle(event) {
-  const modal = document.querySelector(".form-modal");
-  if (event.target.closest(".restaurant-add-button")) {
+function handleFormModalToggle(event, modal) {
+  const target = event.target;
+  if (!target) return;
+  if (target.closest(".restaurant-add-button")) {
     modal.show();
   }
-  if (event.target.closest(".modal-backdrop")) {
+  if (target.closest(".modal-backdrop")) {
     modal.close();
   }
 }
-function handleDescriptionModalToggle(event, restaurantList) {
-  const modal = document.querySelector(".description-modal");
-  const descriptionContainer = document.querySelector(".description");
-  if (event.target.classList.contains("favorite-icon")) return;
+function handleDescriptionModalToggle(event, restaurantList, {
+  modal,
+  container
+}) {
+  var _a;
+  const target = event.target;
+  if (!target) return;
+  if (target.classList.contains("favorite-icon")) return;
   const closeButton = document.querySelector("#close-button");
-  if (event.target === closeButton) {
+  const isCloseButton = target === closeButton;
+  const isBackdrop = !!target.closest(".modal-backdrop");
+  const isInsideModal = !!target.closest(".description-modal");
+  const restaurantElement = target.closest(".restaurant");
+  if (isCloseButton || isBackdrop) {
     modal.close();
     return;
   }
-  if (event.target.closest(".description-modal") && !event.target.closest(".modal-backdrop")) {
+  if (isInsideModal && !isBackdrop && !restaurantElement) {
     return;
   }
-  descriptionContainer.innerHTML = "";
-  const restaurantElement = event.target.closest(".restaurant");
   if (restaurantElement) {
-    if (event.target.classList.contains("restaurant-list")) return;
-    const name = restaurantElement.querySelector(".restaurant__name").textContent;
+    if (target.classList.contains("restaurant-list")) return;
+    container.innerHTML = "";
+    const name = ((_a = restaurantElement.querySelector(".restaurant__name")) == null ? void 0 : _a.textContent) || "";
     const descriptionDiv = createRestaurantDescription(
       restaurantList.searchRestaurant(name)
     );
-    descriptionContainer.appendChild(descriptionDiv);
+    container.appendChild(descriptionDiv);
     modal.showModal();
-    return;
-  }
-  if (event.target.closest(".modal-backdrop")) {
-    modal.close();
   }
 }
 function toggleRestaurantVisibility(restaurantName, isVisible) {
@@ -744,9 +742,9 @@ function handleAddRestaurantFormSubmit(event, restaurantList, restaurantAddForm)
     localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
     restaurantListElement.appendChild(createRestaurantItem(restaurantForm));
     Toast.showToast(`${restaurant.name} 음식점을 추가했습니다.`, "success");
-    const formModal = document.querySelector(".form-modal");
+    const formModal2 = document.querySelector(".form-modal");
     restaurantAddForm.reset();
-    formModal.close();
+    formModal2.close();
   } catch (error) {
     Toast.showToast(`${error.message}`, "error");
   }
@@ -758,21 +756,31 @@ function handleDeleteRestaurant(event, restaurantList, restaurantListElement) {
     restaurantList.deleteRestaurant(name);
     localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
     deleteRestaurantElementByName(name);
-    const descriptionModal = document.querySelector(".description-modal");
-    descriptionModal.close();
+    const descriptionModal2 = document.querySelector(".description-modal");
+    descriptionModal2.close();
     Toast.showToast(`${name} 레스토랑을 삭제했습니다.`, "success");
   } catch (error) {
     Toast.showToast(`${error.message}`, "error");
   }
 }
-function bindEventHandlers(restaurantList, restaurantListElement, restaurantAddForm) {
+const formModal = document.querySelector(".form-modal");
+const descriptionModal = document.querySelector(".description-modal");
+const descriptionContainer = document.querySelector(".description");
+function bindEventHandlers({
+  restaurantList,
+  restaurantListElement,
+  restaurantAddForm
+}) {
   document.body.addEventListener("click", (event) => {
     const target = event.target;
     if (target.closest("#delete-button")) {
       handleDeleteRestaurant(event, restaurantList);
     }
-    handleFormModalToggle(event);
-    handleDescriptionModalToggle(event, restaurantList);
+    handleFormModalToggle(event, formModal);
+    handleDescriptionModalToggle(event, restaurantList, {
+      modal: descriptionModal,
+      container: descriptionContainer
+    });
     handleFavoriteToggle(event, restaurantList);
   });
   const filterElements = document.querySelectorAll(
@@ -783,8 +791,16 @@ function bindEventHandlers(restaurantList, restaurantListElement, restaurantAddF
       handleCombinedFilter(event, restaurantListElement, restaurantList);
     });
   });
-  document.getElementById("sorting-filter").addEventListener("change", (event) => {
-    handleSort(event.target.value, restaurantList, restaurantListElement);
+  const sortingFilter = document.getElementById(
+    "sorting-filter"
+  );
+  if (!sortingFilter) return;
+  sortingFilter.addEventListener("change", (event) => {
+    handleSort(
+      event.target.value,
+      restaurantList,
+      restaurantListElement
+    );
   });
   restaurantAddForm.addEventListener(
     "submit",
@@ -800,18 +816,33 @@ function bindEventHandlers(restaurantList, restaurantListElement, restaurantAddF
   });
 }
 function initializeApp() {
-  document.querySelector("#app");
-  const modalContainer = document.querySelector(".modal-container");
-  const restaurantListElement = document.querySelector(".restaurant-list");
+  const modalContainer = document.querySelector(
+    ".modal-container"
+  );
+  const restaurantListElement = document.querySelector(
+    ".restaurant-list"
+  );
   const restaurantForm = createRestaurantForm();
+  if (!modalContainer || !restaurantListElement) {
+    throw new Error("Required elements not found in the DOM.");
+  }
   modalContainer.appendChild(restaurantForm);
-  const restaurantAddForm = document.querySelector(".restaurant-add-form");
+  const restaurantAddForm = document.querySelector(
+    ".restaurant-add-form"
+  );
+  if (!restaurantAddForm) {
+    throw new Error("Restaurant add form element not found.");
+  }
   const restaurantList = loadRestaurantList();
-  return { restaurantList, restaurantListElement, restaurantAddForm };
+  return {
+    restaurantList,
+    restaurantListElement,
+    restaurantAddForm
+  };
 }
 function loadRestaurantList() {
   const savedList = localStorage.getItem("restaurantList");
-  const initialList = JSON.parse(savedList) || [...INITIAL_RESTAURANT];
+  const initialList = JSON.parse(savedList) ?? [...INITIAL_RESTAURANT];
   localStorage.setItem("restaurantList", JSON.stringify(initialList));
   return new RestaurantList(initialList);
 }
@@ -834,6 +865,6 @@ function init() {
   return { restaurantList, restaurantListElement, restaurantAddForm };
 }
 document.addEventListener("DOMContentLoaded", () => {
-  const { restaurantList, restaurantListElement, restaurantAddForm } = init();
-  bindEventHandlers(restaurantList, restaurantListElement, restaurantAddForm);
+  const appState = init();
+  bindEventHandlers(appState);
 });

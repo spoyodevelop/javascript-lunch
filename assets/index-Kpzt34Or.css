@@ -203,9 +203,7 @@ input[name="link"] {
   height: 44px;
 }
 
-/* 이걸 바꾸시오. */
-
-#favorite-filter {
+.favorite-filter {
   display: flex;
   justify-content: center;
   border-bottom: 2px solid #ddd;
@@ -213,11 +211,11 @@ input[name="link"] {
   flex-grow: 1;
 }
 
-#favorite-filter input[type="radio"] {
+.favorite-filter input[type="radio"] {
   display: none;
 }
 
-#favorite-filter label {
+.favorite-filter label {
   width: 100%;
   text-align: center;
   position: relative;
@@ -229,12 +227,12 @@ input[name="link"] {
   transition: color 0.3s ease-in-out;
 }
 
-#favorite-filter input[type="radio"]:checked + label {
+.favorite-filter input[type="radio"]:checked + label {
   color: #f60;
   font-weight: 700;
 }
 
-#favorite-filter input[type="radio"]:checked + label::after {
+.favorite-filter input[type="radio"]:checked + label::after {
   content: "";
   position: absolute;
   left: 0;
@@ -374,6 +372,29 @@ input[name="link"] {
 
 .toast.success {
   background-color: #5cb85c;
+}
+
+.description__icon {
+  margin-bottom: 1rem;
+}
+
+.description__contents {
+  margin-bottom: 1rem;
+}
+
+.link {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus {
+  outline: none;
+  color: #0056b3;
 }
 
 * {

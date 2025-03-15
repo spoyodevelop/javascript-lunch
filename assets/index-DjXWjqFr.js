@@ -43,42 +43,17 @@ var _restaurantList;
     fetch(link.href, fetchOpts);
   }
 })();
-const CATEGORY_ICON = {
-  한식: "./category-korean.png",
-  중식: "./category-chinese.png",
-  일식: "./category-japanese.png",
-  양식: "./category-western.png",
-  아시안: "./category-asian.png",
-  기타: "./category-etc.png"
-};
-const FOOD_CATEGORY = [
-  { value: "한식", text: "한식" },
-  { value: "중식", text: "중식" },
-  { value: "일식", text: "일식" },
-  { value: "아시안", text: "아시안" },
-  { value: "양식", text: "양식" },
-  { value: "기타", text: "기타" }
-];
-const RESTAURANT_DISTANCE = [
-  { value: "5", text: "5분 내" },
-  { value: "10", text: "10분 내" },
-  { value: "15", text: "15분 내" },
-  { value: "20", text: "20분 내" },
-  { value: "30", text: "30분 내" }
+const RESTAURANT_DISTANCE_VALUES = [
+  "5",
+  "10",
+  "15",
+  "20",
+  "30"
 ];
 const RESTAURANT_FIELD_LENGTH = {
   name: { min: 1, max: 12 },
   description: { min: 0, max: 300 },
   link: { min: 0, max: 300 }
-};
-const ERROR_MESSAGE = {
-  INVALID_CATEGORY: "존재하지 않는 카테고리 입니다.",
-  INVALID_RESTAURANT_NAME_LENGTH: `음식점 이름은 ${RESTAURANT_FIELD_LENGTH.name.min}글자 이상, ${RESTAURANT_FIELD_LENGTH.name.max}글자 이하만 가능합니다.`,
-  INVALID_RESTAURANT_DISTANCE: "음식점 거리가 유효하지 않습니다.",
-  INVALID_RESTAURANT_DESCRIPTION_LENGTH: `음식점 설명은 ${RESTAURANT_FIELD_LENGTH.description.max}이하만 가능합니다.`,
-  INVALID_RESTAURANT_LINK_LENGTH: `움식점 링크는 ${RESTAURANT_FIELD_LENGTH.link.max}이하만 가능합니다.`,
-  DUPLICATE_RESTAURANT: "이미 동일한 이름의 음식점이 있습니다. 다른 음식점을 입력해주세요.",
-  NO_RESTAURANT_FOUND: "해당 레스토랑이 없습니다. 이미 지워진것 일수 있어요."
 };
 const INITIAL_RESTAURANT = [
   {
@@ -162,34 +137,36 @@ const INITIAL_RESTAURANT = [
     link: "https://bbqchicken.com"
   }
 ];
-const DICTIONARY = {
-  name: "이름",
-  distance: "거리",
-  all: "모든 음식점",
-  favorite: "자주 가는 음식점",
-  전체: "전체",
-  ...FOOD_CATEGORY.reduce(
-    (acc, category) => ({
-      ...acc,
-      [category.value]: category.text
-    }),
-    {}
-  )
+const ERROR_MESSAGE = {
+  INVALID_CATEGORY: "존재하지 않는 카테고리 입니다.",
+  INVALID_RESTAURANT_NAME_LENGTH: `음식점 이름은 ${RESTAURANT_FIELD_LENGTH.name.min}글자 이상, ${RESTAURANT_FIELD_LENGTH.name.max}글자 이하만 가능합니다.`,
+  INVALID_RESTAURANT_DISTANCE: "음식점 거리가 유효하지 않습니다.",
+  INVALID_RESTAURANT_DESCRIPTION_LENGTH: `음식점 설명은 ${RESTAURANT_FIELD_LENGTH.description.max}이하만 가능합니다.`,
+  INVALID_RESTAURANT_LINK_LENGTH: `움식점 링크는 ${RESTAURANT_FIELD_LENGTH.link.max}이하만 가능합니다.`,
+  DUPLICATE_RESTAURANT: "이미 동일한 이름의 음식점이 있습니다. 다른 음식점을 입력해주세요.",
+  NO_RESTAURANT_FOUND: "해당 레스토랑이 없습니다. 이미 지워진것 일수 있어요."
 };
-function extractByKey(list, key) {
-  return list.map((item) => item[key]).filter((value) => typeof value === "string");
-}
-function extractFormData(form) {
-  const formData = new FormData(form);
-  return Object.fromEntries(formData.entries());
-}
+const CATEGORY_ICON = {
+  한식: "./category-korean.png",
+  중식: "./category-chinese.png",
+  일식: "./category-japanese.png",
+  양식: "./category-western.png",
+  아시안: "./category-asian.png",
+  기타: "./category-etc.png"
+};
+const FOOD_CATEGORY_VALUES = [
+  "한식",
+  "중식",
+  "일식",
+  "아시안",
+  "양식",
+  "기타"
+];
 function isInRange(value, min, max) {
   return value >= min && value <= max;
 }
-const categoryList = extractByKey(FOOD_CATEGORY, "value");
-const distanceList = extractByKey(RESTAURANT_DISTANCE, "value");
 function _validateRestaurantCategory(category) {
-  if (!categoryList.includes(category)) {
+  if (!FOOD_CATEGORY_VALUES.includes(category)) {
     throw new Error(ERROR_MESSAGE.INVALID_CATEGORY);
   }
 }
@@ -203,7 +180,7 @@ function _validateRestaurantName(restaurantName) {
   }
 }
 function _validateRestaurantDistance(distance) {
-  if (!distanceList.includes(distance.toString())) {
+  if (!RESTAURANT_DISTANCE_VALUES.includes(distance.toString())) {
     throw new Error(ERROR_MESSAGE.INVALID_RESTAURANT_DISTANCE);
   }
 }
@@ -305,7 +282,9 @@ function createButton({
     textContent
   });
 }
-const defaultOption = { value: "", text: "선택해 주세요" };
+function appendStringForValue(array, string) {
+  return array.map((ele) => ({ key: ele, value: ele + string }));
+}
 function createDropdownBox({
   labelText,
   id,
@@ -325,13 +304,23 @@ function createDropdownBox({
     id,
     required
   });
-  const optionList = [defaultOption, ...dropdownList];
-  const optionElements = optionList.map(
-    ({ value, text }) => createElement("option", {
-      value,
-      textContent: text
-    })
-  );
+  let stringToAppend = "";
+  if (dropdownList === RESTAURANT_DISTANCE_VALUES) {
+    stringToAppend = "분 내";
+  }
+  const mappedList = appendStringForValue(dropdownList, stringToAppend);
+  const optionElements = [
+    createElement("option", {
+      value: "",
+      textContent: "선택해 주세요"
+    }),
+    ...mappedList.map(
+      ({ key, value }) => createElement("option", {
+        value: key,
+        textContent: value
+      })
+    )
+  ];
   select.append(...optionElements);
   const fragment = createElementsFragment([dropdownLabel, select]);
   dropdownBox.appendChild(fragment);
@@ -497,7 +486,7 @@ function createRestaurantForm(restaurantList) {
     createDropdownBox({
       labelText: "카테고리",
       id: "category",
-      dropdownList: FOOD_CATEGORY,
+      dropdownList: FOOD_CATEGORY_VALUES,
       required: true
     }),
     createInputBox({
@@ -510,7 +499,7 @@ function createRestaurantForm(restaurantList) {
     createDropdownBox({
       labelText: "거리(도보 이동 시간)",
       id: "distance",
-      dropdownList: RESTAURANT_DISTANCE,
+      dropdownList: RESTAURANT_DISTANCE_VALUES,
       required: true
     }),
     createTextAreaBox({
@@ -551,6 +540,23 @@ function createRestaurantForm(restaurantList) {
   restaurantAddForm.appendChild(buttonContainer);
   return restaurantAddForm;
 }
+const DICTIONARY = {
+  name: "이름",
+  distance: "거리",
+  all: "모든 음식점",
+  favorite: "자주 가는 음식점",
+  전체: "전체",
+  ...FOOD_CATEGORY_VALUES.reduce((acc, cur) => {
+    return { ...acc, [cur]: cur };
+  }, {})
+};
+function handleSort(sortFor, restaurantList, restaurantListElement) {
+  const restaurantItems = Array.from(restaurantListElement.children);
+  localStorage.setItem("sort", sortFor);
+  const sortedItems = sortList(restaurantItems, sortFor);
+  sortedItems.forEach((item) => restaurantListElement.appendChild(item));
+  Toast.showToast(`${DICTIONARY[sortFor]}순으로 식당을 정렬합니다.`, "info");
+}
 function sortList(list, sortOption) {
   return list.sort((a, b) => {
     const nameA = a.name || a.dataset.name;
@@ -563,22 +569,33 @@ function sortList(list, sortOption) {
     return nameA.localeCompare(nameB) || distanceA - distanceB;
   });
 }
-function handleSort(sortFor, restaurantList, restaurantListElement) {
-  const restaurantItems = Array.from(restaurantListElement.children);
-  localStorage.setItem("sort", sortFor);
-  const sortedItems = sortList(restaurantItems, sortFor);
-  sortedItems.forEach((item) => restaurantListElement.appendChild(item));
-  Toast.showToast(`${DICTIONARY[sortFor]}순으로 식당을 정렬합니다.`, "info");
-}
 function handleCombinedFilter(event, restaurantListElement, restaurantList) {
+  clearRestaurantList(restaurantListElement);
+  const { categoryFilter, favoriteFilter } = getFilterValues();
+  let filteredList = applyFilters(
+    restaurantList.List,
+    categoryFilter,
+    favoriteFilter
+  );
+  const sortedList = applySorting(filteredList);
+  updateRestaurantListUI$1(restaurantListElement, sortedList);
+  showFilterToast(event.target.value);
+}
+function clearRestaurantList(restaurantListElement) {
   while (restaurantListElement.firstChild) {
     restaurantListElement.removeChild(restaurantListElement.firstChild);
   }
-  const categoryFilter = document.getElementById("category-filter").value;
-  const favoriteFilter = document.querySelector(
-    'input[name="favoriteFilter"]:checked'
-  ).value;
-  let filteredList = restaurantList.List;
+}
+function getFilterValues() {
+  return {
+    categoryFilter: document.getElementById("category-filter").value,
+    favoriteFilter: document.querySelector(
+      'input[name="favoriteFilter"]:checked'
+    ).value
+  };
+}
+function applyFilters(restaurantList, categoryFilter, favoriteFilter) {
+  let filteredList = restaurantList;
   if (favoriteFilter !== "all") {
     filteredList = filteredList.filter(({ isFavorite }) => isFavorite);
   }
@@ -587,18 +604,32 @@ function handleCombinedFilter(event, restaurantListElement, restaurantList) {
       ({ category }) => category === categoryFilter
     );
   }
+  return filteredList;
+}
+function applySorting(filteredList) {
   const sortOption = localStorage.getItem("sort") || "name";
-  const sortedList = sortList(filteredList, sortOption);
+  return sortList(filteredList, sortOption);
+}
+function updateRestaurantListUI$1(restaurantListElement, sortedList) {
   sortedList.forEach(
     (restaurantItem) => restaurantListElement.appendChild(createRestaurantItem(restaurantItem))
   );
-  if (event.target.value === "all" || event.target.value === "전체") {
+}
+function showFilterToast(filterValue) {
+  if (filterValue === "all" || filterValue === "전체") {
     Toast.showToast("모든 음식점을 보여줄께요.", "info");
   } else {
-    Toast.showToast(
-      `${DICTIONARY[event.target.value]}만 보여드릴께요.`,
-      "info"
-    );
+    Toast.showToast(`${DICTIONARY[filterValue]}만 보여드릴께요.`, "info");
+  }
+}
+function handleFormModalToggle(event, modal) {
+  const target = event.target;
+  if (!target) return;
+  if (target.closest(".restaurant-add-button")) {
+    modal.show();
+  }
+  if (target.closest(".modal-backdrop")) {
+    modal.close();
   }
 }
 function createRestaurantDescription({
@@ -651,47 +682,65 @@ function createRestaurantDescription({
     `;
   return restaurantItem;
 }
-function handleFormModalToggle(event, modal) {
-  const target = event.target;
-  if (!target) return;
-  if (target.closest(".restaurant-add-button")) {
-    modal.show();
-  }
-  if (target.closest(".modal-backdrop")) {
-    modal.close();
-  }
-}
 function handleDescriptionModalToggle(event, restaurantList, {
   modal,
   container
 }) {
-  var _a;
   const target = event.target;
   if (!target) return;
   if (target.classList.contains("favorite-icon")) return;
+  if (isClosingConditionMet(target)) {
+    closeModal$1(modal);
+    return;
+  }
+  const restaurantElement = target.closest(".restaurant");
+  if (restaurantElement) {
+    openModal(modal, container, restaurantElement, restaurantList);
+  }
+}
+function isClosingConditionMet(target) {
   const closeButton = document.querySelector("#close-button");
   const isCloseButton = target === closeButton;
   const isBackdrop = !!target.closest(".modal-backdrop");
   const isInsideModal = !!target.closest(".description-modal");
-  const restaurantElement = target.closest(".restaurant");
-  if (isCloseButton || isBackdrop) {
-    modal.close();
-    return;
-  }
-  if (isInsideModal && !isBackdrop && !restaurantElement) {
-    return;
-  }
-  if (restaurantElement) {
-    if (target.classList.contains("restaurant-list")) return;
-    container.innerHTML = "";
-    const name = ((_a = restaurantElement.querySelector(".restaurant__name")) == null ? void 0 : _a.textContent) || "";
-    const descriptionDiv = createRestaurantDescription(
-      restaurantList.searchRestaurant(name)
-    );
-    container.appendChild(descriptionDiv);
-    modal.showModal();
-  }
+  return isCloseButton || isBackdrop || isInsideModal && !isBackdrop;
 }
+function closeModal$1(modal) {
+  modal.close();
+}
+function openModal(modal, container, restaurantElement, restaurantList) {
+  if (restaurantElement.classList.contains("restaurant-list")) return;
+  updateModalContent(container, restaurantElement, restaurantList);
+  modal.show();
+}
+function updateModalContent(container, restaurantElement, restaurantList) {
+  var _a;
+  container.innerHTML = "";
+  const name = ((_a = restaurantElement.querySelector(".restaurant__name")) == null ? void 0 : _a.textContent) || "";
+  const descriptionDiv = createRestaurantDescription(
+    restaurantList.searchRestaurant(name)
+  );
+  container.appendChild(descriptionDiv);
+}
+function extractFormData(form) {
+  const formData = new FormData(form);
+  return Object.fromEntries(formData.entries());
+}
+const StorageManager = {
+  getItem(key, defaultValue) {
+    const value = localStorage.getItem(key);
+    if (!value) return defaultValue;
+    return JSON.parse(value);
+  },
+  setItem(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+};
+const STORAGE_KEYS = {
+  RESTAURANT_LIST: "restaurantList",
+  FAVORITE: "favorite",
+  FILTER: "filter"
+};
 function toggleRestaurantVisibility(restaurantName, isVisible) {
   const restaurant = document.getElementById(restaurantName);
   if (!restaurant) return;
@@ -721,7 +770,7 @@ function handleFavoriteToggle(event, restaurantList, restaurantListElement) {
   const restaurant = restaurantList.searchRestaurant(name);
   if (!restaurant) return;
   restaurantList.toggleFavoriteRestaurant(restaurant);
-  localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
+  StorageManager.setItem(STORAGE_KEYS.RESTAURANT_LIST, restaurantList.List);
   toggleFavoriteRestaurantByName(name);
   const isFavoriteFilterOn = document.querySelector('input[name="favoriteFilter"]:checked').value === "favorite";
   if (isFavoriteFilterOn) {
@@ -737,16 +786,29 @@ function handleAddRestaurantFormSubmit(event, restaurantList, restaurantAddForm)
   try {
     const restaurantForm = extractFormData(restaurantAddForm);
     const restaurant = restaurantFormValidation(restaurantForm);
-    const restaurantListElement = document.querySelector(".restaurant-list");
-    restaurantList.addRestaurant(restaurant);
-    localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
-    restaurantListElement.appendChild(createRestaurantItem(restaurantForm));
+    addRestaurantToList(restaurantList, restaurant);
+    updateRestaurantListUI(restaurant, restaurantForm);
     Toast.showToast(`${restaurant.name} 음식점을 추가했습니다.`, "success");
-    const formModal2 = document.querySelector(".form-modal");
+    closeModal(document.querySelector(".form-modal"));
     restaurantAddForm.reset();
-    formModal2.close();
   } catch (error) {
     Toast.showToast(`${error.message}`, "error");
+  }
+}
+function addRestaurantToList(restaurantList, restaurant) {
+  restaurantList.addRestaurant(restaurant);
+  StorageManager.setItem(STORAGE_KEYS.RESTAURANT_LIST, restaurantList.List);
+}
+function updateRestaurantListUI(restaurant, restaurantForm) {
+  const restaurantListElement = document.querySelector(".restaurant-list");
+  const isFavoriteFilterOn = document.querySelector('input[name="favoriteFilter"]:checked').value === "favorite";
+  if (!isFavoriteFilterOn) {
+    restaurantListElement.appendChild(createRestaurantItem(restaurantForm));
+  }
+}
+function closeModal(modal) {
+  if (modal) {
+    modal.close();
   }
 }
 function handleDeleteRestaurant(event, restaurantList, restaurantListElement) {
@@ -754,7 +816,7 @@ function handleDeleteRestaurant(event, restaurantList, restaurantListElement) {
     const parent = event.target.parentElement.parentElement;
     const name = parent.querySelector(".restaurant__name").textContent;
     restaurantList.deleteRestaurant(name);
-    localStorage.setItem("restaurantList", JSON.stringify(restaurantList.List));
+    StorageManager.setItem(STORAGE_KEYS.RESTAURANT_LIST, restaurantList.List);
     deleteRestaurantElementByName(name);
     const descriptionModal2 = document.querySelector(".description-modal");
     descriptionModal2.close();
@@ -841,10 +903,12 @@ function initializeApp() {
   };
 }
 function loadRestaurantList() {
-  const savedList = localStorage.getItem("restaurantList");
-  const initialList = JSON.parse(savedList) ?? [...INITIAL_RESTAURANT];
-  localStorage.setItem("restaurantList", JSON.stringify(initialList));
-  return new RestaurantList(initialList);
+  const initialRestaurant = StorageManager.getItem(
+    STORAGE_KEYS.RESTAURANT_LIST,
+    INITIAL_RESTAURANT
+  );
+  StorageManager.setItem(STORAGE_KEYS.RESTAURANT_LIST, initialRestaurant);
+  return new RestaurantList(initialRestaurant);
 }
 function renderRestaurantList(restaurantList, restaurantListElement) {
   restaurantList.List.forEach(

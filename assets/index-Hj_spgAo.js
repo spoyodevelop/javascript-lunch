@@ -729,8 +729,14 @@ function extractFormData(form) {
 const StorageManager = {
   getItem(key, defaultValue) {
     const value = localStorage.getItem(key);
-    if (!value) return defaultValue;
-    return JSON.parse(value);
+    if (value === null) {
+      return defaultValue;
+    }
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      return defaultValue;
+    }
   },
   setItem(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
